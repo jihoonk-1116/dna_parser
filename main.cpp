@@ -77,71 +77,46 @@ string transcribe(string dna_string)
 
 vector<string> translate(string mrna_string)
 {
-    //look for mRNA sequence that starts with AUG
-    //UAG, UGA, UAA -> indicates the end point of a sequence
-    //all sequences is ended with 'Stop'
-    //AUG UGG GGA GAC ACG CGG GGC GCA CACACUCUCUCACAUAUUUUUUUAUAA
-    //AUG (GAU/GAC) (GGU/GGC/GGA/GGG) (ACU/ACC/ACA/ACG) CAU/CAC UUA/UUG/CUU/CUC/CUA/CUG (AUU/AUC/AUA)
-    //(UUA/UUG/CUU/CUC/CUA/CUG) AAA/AAG
-    //the first : AUG GAC GGC ACU CAU UUA AUU UUA AAA UAA
-    //AUG GAC GGC ACU CAU UUA AUU UUA AAA UAA
-    //81
     vector<string> protein_list; //empty vector
-    //UCG AAA AGU AAG ACU GAC GUU GCC CGU UAU ACA GAG ACA CAC CUA AUU UUU UUC UCA CAG
-    //ACU AUC GUC GAA GAC UUG ACC A AU GGA CGG CAC UCA UUU AAU UUU AAA AUA ACU GAA UCC AGU GAU UUA UGA
-    int index = 0;
+    int index = 0;               //string index
     while (index <= mrna_string.length())
     {
-        string result = "";
-        string t = "";
-        t += mrna_string[index];
-        t += mrna_string[index + 1];
-        t += mrna_string[index + 2];
-        index = index + 1;
-        //cout << t << endl;
-        if (t == "AUG")
+        //cout << mrna_string << endl;
+        int aug_pos = mrna_string.find("AUG"); //return aug index
+        index = aug_pos + 3;                   //after aug
+        string result = "M";
+        while (1)
         {
-            result += t;
-            while (1)
+            string t = "";
+            t += mrna_string[index];
+            t += mrna_string[index + 1];
+            t += mrna_string[index + 2];
+            index = index + 3;
+            if (index > mrna_string.length())
+                break;
+            for (int i = 0; i < mycodons.size(); i++)
             {
-                t = "";
-                t += mrna_string[index];
-                t += mrna_string[index + 1];
-                t += mrna_string[index + 2];
-                //cout << t << endl;
-                index = index + 3;
-                //cout << index << endl;
-                if (t == "UAG" || t == "UGA" || t == "UAA")
+                if (mycodons[i][0] == t)
                 {
-                    result += t;
-                    // cout << endl;
-                    // cout << result << endl;
-                    // cout << endl;
-                    protein_list.push_back(result);
-                    break;
+                    result += mycodons[i][1];
                 }
-                result += t;
+            }
+            if (t == "UAG" || t == "UGA" || t == "UAA")
+            {
+                protein_list.push_back(result);
+                mrna_string = mrna_string.substr(index);
+                break;
             }
         }
     }
     return protein_list;
 }
 
-// void print_protein_list(vector<string> list)
-// {
-//     for (string line : list)
-//     {
-//         cout << line << endl;
-//     }
-//     cout << list.size() << "proteins listed" << endl;
-// }
-
 int main()
 {
     string dnastring = readFastaFile("ecoli.fa");
     readCsvFile("codon_table.csv");
     string mrnastring = transcribe(dnastring);
-    //cout << mrnastring << endl;
     vector<string> protein_list = translate(mrnastring);
     cout << protein_list.size();
     // print_protein_list(protein_list);
